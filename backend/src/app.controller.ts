@@ -1,12 +1,15 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import { SuccessResponse, ErrorResponse } from './util/reponses';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  getHello(): ErrorResponse | SuccessResponse {
+    throw new ErrorResponse({
+      message: 'This endpoint is not implemented yet.',
+    });
   }
 }
