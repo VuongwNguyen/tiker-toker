@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as Bcrypt from 'bcryptjs';
 
 export enum AuthStatus {
   ACTIVE = 'active',
@@ -34,6 +35,8 @@ export class TiktokAccount extends Document {
   roomId: string;
 }
 
+export const TiktokAccountSchema = SchemaFactory.createForClass(TiktokAccount);
+
 @Schema({ timestamps: true })
 export class Auth extends Document {
   @Prop({ required: true, unique: true })
@@ -41,6 +44,9 @@ export class Auth extends Document {
 
   @Prop({ required: true })
   password: string;
+
+  @Prop({})
+  name: string;
 
   @Prop({ default: AuthStatus.UNVERIFIED, enum: AuthStatus })
   status: AuthStatus;
@@ -55,4 +61,29 @@ export class Auth extends Document {
   TiktokAccounts: TiktokAccount[];
 }
 
-const AuthSchema = SchemaFactory.createForClass(Auth);
+export const AuthSchema = SchemaFactory.createForClass(Auth);
+
+AuthSchema.pre<Auth>('save', function (next) {
+  if (this.isModified('password')) {
+    // Hash the password before saving
+    this.password = Bcrypt.hashSync(this.password, 10);
+  }
+  if (this.isModified('email')) {
+    this.name = this.email.split('@')[0]; // Set name to the part before '@' in email
+  }
+  next();
+});
+
+
+AuthSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password; // Remove password from the output
+  delete obj.currentRefreshToken; // Remove currentRefreshToken from the output
+  delete obj.__v; // Remove version key from the output
+  delete obj.createdAt; // Remove createdAt from the output
+  delete obj.updatedAt; // Remove updatedAt from the output
+  delete obj.TiktokAccounts; // Remove TiktokAccounts from the output
+  delete obj._id; // Remove _id from the output
+  delete obj.status
+  return obj;
+}

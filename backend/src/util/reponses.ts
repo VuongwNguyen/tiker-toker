@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class SuccessResponse<T = any> {
   statusResponse: boolean;
@@ -24,8 +24,8 @@ export class SuccessResponse<T = any> {
 
 export class ErrorResponse extends HttpException {
   constructor({
-    message = 'Internal server error',
-    statusCode = 500,
+    message = HttpStatus[HttpStatus.INTERNAL_SERVER_ERROR],
+    statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
     statusResponse = false,
   }: {
     message?: string;
