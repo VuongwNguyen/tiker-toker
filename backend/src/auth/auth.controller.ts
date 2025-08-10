@@ -18,13 +18,14 @@ import { JwtGuard } from './guards/jwt.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { AuthRole } from './entities/auth.entity';
+import { RefreshGuard } from './guards/refresh.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('create')
-  async create(@Body() createAuthDto: CreateAuthDto, ) {
+  async create(@Body() createAuthDto: CreateAuthDto) {
     const userCreated = await this.authService.create(createAuthDto);
     return new SuccessResponse({
       meta: userCreated,
@@ -44,17 +45,28 @@ export class AuthController {
       },
       message: 'User signed in successfully',
       statusCode: 200,
-    })
+    });
   }
-  @UseGuards(JwtGuard, RolesGuard)
-  @Roles(AuthRole.ADMIN)
-  @Get('profile')
-  async getProfile(@Req() req: any) {
-    const user = req.user; // Assuming user is set by a guard
+ 
+  @UseGuards(RefreshGuard)
+  @Post('refresh-token')
+  async refreshToken(@Req() req: any) {
+    const tokens = await this.authService.refreshToken(req.user._id, req.cookies.refreshToken);
     return new SuccessResponse({
-      meta: user,
-      message: 'User profile retrieved successfully',
+      meta: tokens,
+      message: 'Tokens refreshed successfully',
       statusCode: 200,
     });
   }
+  // @UseGuards(JwtGuard, RolesGuard)
+  // @Roles(AuthRole.ADMIN, AuthRole.MODERATOR)
+  // @Get('profile')
+  // async getProfile(@Req() req: any) {
+  //   const user = req.user; // Assuming user is set by a guard
+  //   return new SuccessResponse({
+  //     meta: user,
+  //     message: 'User profile retrieved successfully',
+  //     statusCode: 200,
+  //   });
+  // }
 }

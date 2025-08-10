@@ -9,9 +9,9 @@ export enum AuthStatus {
 }
 
 export enum AuthRole {
-  CUSTOMER = 'customer',
   ADMIN = 'admin',
   MODERATOR = 'moderator',
+  CUSTOMER = 'customer',
 }
 
 @Schema()
@@ -74,7 +74,6 @@ AuthSchema.pre<Auth>('save', function (next) {
   next();
 });
 
-
 AuthSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password; // Remove password from the output
@@ -84,6 +83,6 @@ AuthSchema.methods.toJSON = function () {
   delete obj.updatedAt; // Remove updatedAt from the output
   delete obj.TiktokAccounts; // Remove TiktokAccounts from the output
   delete obj._id; // Remove _id from the output
-  delete obj.status
+  delete obj.status;
   return obj;
-}
+};

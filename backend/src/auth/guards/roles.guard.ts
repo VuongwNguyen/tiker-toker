@@ -2,24 +2,33 @@ import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { AuthRole } from '../entities/auth.entity';
+import { Auth } from '../entities/auth.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    @InjectModel(Auth.name) private authModel: Model<Auth>,
+    private reflector: Reflector,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<AuthRole>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
     );
-    if (!requiredRoles) {
-      return true; // Không cần phân quyền cụ thể
-    }
+    if (!requiredRoles) return true; // Không cần phân quyền cụ thể
 
     const { user } = context.switchToHttp().getRequest();
 
-    console.log('User role:', user); // In ra role của user trong token
+    const queryUser = await this.authModel
+      .findById(user._id)
+      .select('role')
+      .exec();
 
-    return requiredRoles.includes(user?.role); // So sánh role trong token
+    if (!queryUser) return false; // Người dùng không tồn tại
+
+    return requiredRoles.includes(queryUser.role); // So sánh role trong token
   }
 }

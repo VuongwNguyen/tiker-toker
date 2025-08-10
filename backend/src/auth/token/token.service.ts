@@ -11,11 +11,10 @@ export class TokenService {
     private readonly config: ConfigService,
   ) {}
 
-  generateTokens(payload: { _id: string; role: AuthRole }) {
+  generateTokens(payload: { _id: string }) {
     const accessToken = this.jwtService.sign(
       {
         _id: payload._id,
-        role: payload.role,
       },
       {
         secret: this.config.get('ACCESS_JWT_SECRET'),
