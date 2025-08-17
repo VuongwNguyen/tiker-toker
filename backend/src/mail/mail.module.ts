@@ -18,10 +18,10 @@ import { join } from 'path';
         },
       },
       defaults: {
-        from: '"Tiker-Toker" <no-reply>',
+        from: '"Tiker-Toker" <no-reply@myapp.com>',
       },
       template: {
-        dir: join(__dirname, 'templates'),
+        dir: join(process.cwd(), process.env.NODE_ENV === 'production' ? 'dist' : 'src', 'mail', 'template'),
         adapter: new HandlebarsAdapter(), // or EJS adapter
         options: {
           strict: true,

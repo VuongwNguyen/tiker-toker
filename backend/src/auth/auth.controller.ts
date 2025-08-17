@@ -19,14 +19,25 @@ import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { AuthRole } from './entities/auth.entity';
 import { RefreshGuard } from './guards/refresh.guard';
+import { MailService } from 'src/mail/mail.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly mailService: MailService,
+  ) {}
 
   @Post('create')
   async create(@Body() createAuthDto: CreateAuthDto) {
     const userCreated = await this.authService.create(createAuthDto);
+    // Send request verification email
+    await this.mailService.sendEmail(
+      createAuthDto.email,
+      'Welcome to Tiker-Toker',
+      './welcome.html',
+      { name: createAuthDto.email.split('@')[0] },
+    );
     return new SuccessResponse({
       meta: userCreated,
       message: 'User created successfully',
@@ -47,11 +58,14 @@ export class AuthController {
       statusCode: 200,
     });
   }
- 
+
   @UseGuards(RefreshGuard)
   @Post('refresh-token')
   async refreshToken(@Req() req: any) {
-    const tokens = await this.authService.refreshToken(req.user._id, req.cookies.refreshToken);
+    const tokens = await this.authService.refreshToken(
+      req.user._id,
+      req.cookies.refreshToken,
+    );
     return new SuccessResponse({
       meta: tokens,
       message: 'Tokens refreshed successfully',

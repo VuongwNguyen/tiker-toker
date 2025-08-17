@@ -6,8 +6,8 @@ export class MailService {
   constructor(private readonly mailerService: MailerService) {}
   async sendEmail(
     to: string,
-    template: string,
     subject: string,
+    template: string,
     context: Record<string, any>,
   ) {
     await this.mailerService.sendMail({
@@ -16,6 +16,6 @@ export class MailService {
       template, // Name of the template file without extension
       context, // Biến để sử dụng trong template,
     });
-    return { message: 'Welcome email sent successfully' };
+    console.log(`Email sent to ${to} with subject "${subject}"`);
   }
 }
